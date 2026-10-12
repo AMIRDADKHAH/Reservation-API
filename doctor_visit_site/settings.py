@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     # django-jalali
     "django_jalali",
 
+    # rest_framework
+    "rest_framework",
+
     # my apps
     "reservation_app",
 ]
@@ -138,4 +141,11 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
 }
