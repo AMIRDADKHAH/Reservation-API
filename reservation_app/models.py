@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django_jalali.db.models import jDateField, jdatetime
 
 
 class Service(models.Model):
@@ -18,8 +19,8 @@ class Service(models.Model):
 
 
 class ReservationDay(models.Model):
-    date = models.DateField(verbose_name="تاریخ", validators=[
-        MinValueValidator(timezone.localtime(timezone.now()).date(), "تاریخ های گذشته را نمی توان وارد کرد")
+    date = jDateField(verbose_name="تاریخ", validators=[
+        MinValueValidator(jdatetime.datetime.now, "تاریخ های گذشته را نمی توان وارد کرد")
     ])
 
     class Meta:

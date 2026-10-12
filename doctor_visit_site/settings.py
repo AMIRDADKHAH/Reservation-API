@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # django-jalali
+    "django_jalali",
+
     # my apps
     "reservation_app",
 ]
