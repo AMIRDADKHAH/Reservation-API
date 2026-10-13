@@ -8,4 +8,5 @@ app_name = "reservation_app"
 urlpatterns = [
     path("services", views.ServiceListView.as_view(), name="service_list_api"),
     path("days", views.DayListView.as_view(), name="day_list_api"),
+    path("slots", views.SlotListView.as_view(), name="slot_list_api"),
 ]

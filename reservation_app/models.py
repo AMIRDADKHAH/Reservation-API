@@ -36,6 +36,7 @@ class Slot(models.Model):
     day = models.ForeignKey(ReservationDay, on_delete=models.CASCADE, verbose_name="روز", related_name="slots")
     service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="نوع خدمت", related_name="slots")
     time = models.TimeField(verbose_name="زمان")
+    free = models.BooleanField(default=True)
 
     class Meta:
             verbose_name = "رزرو"

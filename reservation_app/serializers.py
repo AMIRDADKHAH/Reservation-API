@@ -9,8 +9,13 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-
 class ReservationDaySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ReservationDay
+        fields = "__all__"
+
+
+class SlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Slot
         fields = "__all__"
