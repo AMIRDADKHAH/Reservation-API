@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
 from rest_framework.request import Request
+from rest_framework.response import Response
 from .models import Service, ReservationDay, Slot
-from .serializers import ServiceSerializer, ReservationDaySerializer, SlotSerializer
+from .serializers import ServiceSerializer, ReservationDaySerializer, SlotSerializer, ReservationSerializer
 import jdatetime
+from rest_framework import status
 
 
 # Views
@@ -38,3 +41,17 @@ class SlotListView(ListAPIView):
             return Slot.objects.none()
 
         return Slot.objects.filter(day=day_id, service_id=service_id)
+
+
+class ReservationCreateView(APIView):
+    def post(self, request:Request):
+        data = request.data
+        ser = ReservationSerializer(data=data)
+        if ser.is_valid():
+            slot_id = ser.validated_data["slot"]
+            slot_id.free = False
+            slot_id.save()
+            ser.save()
+            return Response("Reservation Created", status=status.HTTP_201_CREATED)
+
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)

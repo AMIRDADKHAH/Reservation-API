@@ -72,7 +72,7 @@ const S = {
   days:[], daysLoading:false,    // [{id:4, jalali:'1405-07-30', date:Date}]
   slots:[], loading:false,       // [{id, t, free}]
   service:null, day:null, slot:null,
-  name:'', phone:'', errors:{}, done:null
+  name:'', phone:'', national_code:'', errors:{}, done:null
 };
 
 // ---------- talking to Django ----------
@@ -150,6 +150,7 @@ function render() {
   <div class="step ${s2 ? 'done' : ''} ${s1 ? '' : 'lock'}"><h2><b>${fa(2)}</b>روز و ساعت</h2>${daysHtml}${slotsHtml}</div>
   <div class="step ${s2 ? '' : 'lock'}"><h2><b>${fa(3)}</b>مشخصات تماس</h2>
     <div class="field"><label for="nm">نام و نام خانوادگی</label><input type="text" id="nm" value="${S.name}" autocomplete="name" aria-invalid="${!!S.errors.name}"><div class="err">${S.errors.name || ''}</div></div>
+    <div class="field"><label for="nc">کد ملی</label><input type="text" id="nc" value="${S.national_code}" inputmode="numeric" maxlength="10" aria-invalid="${!!S.errors.national_code}"><div class="err">${S.errors.national_code || ''}</div></div>
     <div class="field"><label for="ph">شماره موبایل</label><input type="tel" id="ph" value="${S.phone}" inputmode="tel" autocomplete="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" aria-invalid="${!!S.errors.phone}"><div class="err">${S.errors.phone || ''}</div></div></div>`;
 
   f.querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
@@ -165,6 +166,7 @@ function render() {
   });
   $('nm').oninput = e => { S.name = e.target.value; sum(); };
   $('ph').oninput = e => { S.phone = e.target.value; sum(); };
+  $('nc').oninput = e => { S.national_code = e.target.value; sum();};
   sum();
 }
 
@@ -182,13 +184,23 @@ $('go').onclick = async () => {
   S.errors = {};
   if (S.name.trim().length < 3) S.errors.name = 'نام و نام خانوادگی را کامل وارد کن.';
   if (!/^09\d{9}$/.test(toEn(S.phone).trim())) S.errors.phone = 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.';
-  if (S.errors.name || S.errors.phone) { render(); const e = document.querySelector('[aria-invalid="true"]'); e && e.focus(); return; }
+  if (!/^[0-9۰-۹]{10}$/.test(toEn(S.national_code).trim())) S.errors.national_code = 'کد ملی باید دقیقاً ۱۰ رقم باشد و فقط عدد وارد کن.';
+  if (S.errors.name || S.errors.phone || S.errors.national_code) {
+    render();
+    const e = document.querySelector('[aria-invalid="true"]');
+    e && e.focus();
+    return;
+  }
   $('go').disabled = true;
   try {
     const r = await fetch(API.appointments, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRFToken': APP.csrf},
-      body: JSON.stringify({slot: S.slot.id, name: S.name.trim(), phone: toEn(S.phone).trim()})
+      body: JSON.stringify({
+        slot: S.slot.id, 
+        full_name: S.name.trim(), 
+        phone: toEn(S.phone).trim(), 
+        national_code: toEn(S.national_code).trim()})
     });
     const data = await r.json();
     if (r.ok) { S.done = fa(data.code); render(); }
