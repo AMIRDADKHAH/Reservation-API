@@ -1,3 +1,10 @@
 from django.shortcuts import render
+from rest_framework.generics import ListAPIView
+from .models import Service
+from .serializers import ServiceSerializer
 
-# Create your views here.
+
+
+class ServiceListView(ListAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
