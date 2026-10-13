@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مطب دکتر نمونه | رزرو نوبت آنلاین</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><i></i>مطب دکتر نمونه</div>
+    <span>شنبه تا چهارشنبه، ۱۶ تا ۲۰</span>
+  </header>
+  <h1>نوبت ویزیتت را آنلاین رزرو کن</h1>
+  <p class="lead">نوع ویزیت و زمان را انتخاب کن، مشخصاتت را وارد کن و کد پیگیری‌ات را همان لحظه بگیر.</p>
+
+  <main class="grid">
+    <section class="panel" id="flow" aria-label="رزرو نوبت"></section>
+    <aside class="panel summary" aria-live="polite">
+      <h2>خلاصه نوبت</h2>
+      <dl id="sum"></dl>
+      <button class="cta" id="go" disabled>ثبت نوبت</button>
+    </aside>
+  </main>
+  <footer>نشانی مطب: (اینجا آدرس را بنویس) · تلفن: (شماره تلفن) · لطفاً ۱۰ دقیقه زودتر حاضر شوید و کد پیگیری را همراه داشته باشید.</footer>
+</div>
+
+<script>
+window.APP = {
+  csrf: "{{ csrf_token }}",
+  api: {
+    services: "{% url 'reservation_app:service_list_api' %}",
+  },
+};
+</script>
+<script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
