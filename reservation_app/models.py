@@ -26,7 +26,7 @@ class ReservationDay(models.Model):
     class Meta:
         verbose_name = "روز رزرو"
         verbose_name_plural = "روز های رزرو"
-        ordering = ("-date",)
+        ordering = ("date",)
 
     def __str__(self):
         return f"{self.date}"

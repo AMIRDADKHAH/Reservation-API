@@ -25,8 +25,29 @@ const toEn = s => String(s).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.inde
 const fmtWd = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {weekday:'long'});
 const fmtDay = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {day:'numeric', month:'long'});
 const fmtFull = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {weekday:'long', day:'numeric', month:'long'});
-// "2026-10-14" -> local Date (no UTC shift)
-const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+// Jalali -> Gregorian conversion, so the browser can show weekday names and month names
+function jalaliToGregorian(jy, jm, jd) {
+  jy += 1595;
+  let days = -355668 + 365 * jy + Math.floor(jy / 33) * 8 + Math.floor(((jy % 33) + 3) / 4) + jd
+    + (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+  let gy = 400 * Math.floor(days / 146097); days %= 146097;
+  if (days > 36524) { gy += 100 * Math.floor(--days / 36524); days %= 36524; if (days >= 365) days++; }
+  gy += 4 * Math.floor(days / 1461); days %= 1461;
+  if (days > 365) { gy += Math.floor((days - 1) / 365); days = (days - 1) % 365; }
+  let gd = days + 1;
+  const leap = (gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0;
+  const sal = [0, 31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let gm = 0; while (gm < 13 && gd > sal[gm]) { gd -= sal[gm]; gm++; }
+  return [gy, gm, gd];
+}
+// "1405-07-30" -> local Date object
+function jalaliStrToDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  const [gy, gm, gd] = jalaliToGregorian(y, m, d);
+  return new Date(gy, gm - 1, gd);
+}
+// DRF may return a plain array, or {results:[...]} when pagination is on
+const toList = data => Array.isArray(data) ? data : (data.results || data.days || data.slots || []);
 
 // "00:30:00" -> 30 minutes (also handles Django's "1 02:00:00" with days)
 function parseDuration(s) {
@@ -48,7 +69,7 @@ const formatPrice = p => Number(p).toLocaleString('fa-IR') + ' تومان';
 // ---------- state ----------
 let SERVICES = [];   // [{id, name, min, price}]
 const S = {
-  days:[], daysLoading:false,    // [{key:'2026-10-14', date:Date, free:3}]
+  days:[], daysLoading:false,    // [{id:4, jalali:'1405-07-30', date:Date}]
   slots:[], loading:false,       // [{id, t, free}]
   service:null, day:null, slot:null,
   name:'', phone:'', errors:{}, done:null
@@ -64,26 +85,29 @@ async function loadServices() {
   } catch (e) { alert('دریافت لیست ویزیت‌ها انجام نشد.'); }
   render();
 }
-// days: expected JSON -> {"days":[{"date":"2026-10-14","free":3}, ...]}
+// days: expected JSON -> [{"id":4,"date":"1405-07-30"}, ...]  (Jalali dates, any order)
 async function loadDays() {
   const svc = S.service;
   S.daysLoading = true; render();
   try {
     const data = await getJSON(API.days, {service: svc.id});
     if (S.service !== svc) return; // user changed service meanwhile
-    S.days = data.days.map(d => ({key: d.date, date: parseYmd(d.date), free: d.free}));
-  } catch (e) { S.days = []; alert('دریافت روزها انجام نشد. اینترنت را بررسی کن.'); }
+    S.days = toList(data)
+      .map(d => ({id: d.id, jalali: d.date, date: jalaliStrToDate(d.date), free: d.free}))
+      .sort((a, b) => (a.jalali < b.jalali ? -1 : 1));   // soonest day first
+  } catch (e) { console.error(e); S.days = []; alert('دریافت روزها انجام نشد. اینترنت را بررسی کن.'); }
   S.daysLoading = false; render();
 }
-// slots: expected JSON -> {"slots":[{"id":12,"t":"16:00","free":true}, ...]}
+// slots: sends ?day=<day id>&service=<service id>
+// expected JSON -> [{"id":12,"time":"16:00:00"}, ...]  ("free": false is optional, shows the slot crossed out)
 async function loadSlots() {
   const day = S.day, svc = S.service;
   S.loading = true; render();
   try {
-    const data = await getJSON(API.slots, {date: day.key, service: svc.id});
+    const data = await getJSON(API.slots, {day: day.id, service: svc.id});
     if (S.day !== day || S.service !== svc) return; // user changed selection meanwhile
-    S.slots = data.slots.map(s => ({id: s.id, t: faDigits(s.t), free: s.free}));
-  } catch (e) { S.slots = []; alert('دریافت ساعت‌ها انجام نشد. اینترنت را بررسی کن.'); }
+    S.slots = toList(data).map(s => ({id: s.id, t: faDigits(String(s.t ?? s.time).slice(0, 5)), free: s.free ?? true}));
+  } catch (e) { console.error(e); S.slots = []; alert('دریافت ساعت‌ها انجام نشد. اینترنت را بررسی کن.'); }
   S.loading = false; render();
 }
 
@@ -113,7 +137,7 @@ function render() {
   const daysHtml = !S.service ? '<p class="hint">اول نوع ویزیت را انتخاب کن.</p>'
     : S.daysLoading ? '<p class="hint">در حال دریافت روزها…</p>'
     : !S.days.length ? '<p class="hint">برای این ویزیت فعلاً روزی تعریف نشده است.</p>'
-    : `<div class="days">${S.days.map(d => `<button class="day" data-d="${d.key}" ${d.free ? '' : 'disabled'} aria-pressed="${!!S.day && S.day.key === d.key}">${fmtWd.format(d.date)}<small>${fmtDay.format(d.date)}</small></button>`).join('')}</div>`;
+    : `<div class="days">${S.days.map(d => `<button class="day" data-d="${d.id}" ${d.free === 0 ? 'disabled' : ''} aria-pressed="${!!S.day && S.day.id === d.id}">${fmtWd.format(d.date)}<small>${fmtDay.format(d.date)}</small></button>`).join('')}</div>`;
 
   const slotsHtml = !S.service || S.daysLoading || !S.days.length ? ''
     : !S.day ? '<p class="hint">یک روز را انتخاب کن تا ساعت‌های خالی را ببینی.</p>'
@@ -134,7 +158,7 @@ function render() {
     loadDays();                          // days depend on the service
   });
   f.querySelectorAll('[data-d]').forEach(b => b.onclick = () => {
-    S.day = S.days.find(x => x.key === b.dataset.d); S.slot = null; S.slots = []; loadSlots();
+    S.day = S.days.find(x => String(x.id) === b.dataset.d); S.slot = null; S.slots = []; loadSlots();
   });
   f.querySelectorAll('[data-id]').forEach(b => b.onclick = () => {
     S.slot = S.slots.find(x => String(x.id) === b.dataset.id); render();

@@ -34,6 +34,7 @@ window.APP = {
   csrf: "{{ csrf_token }}",
   api: {
     services: "{% url 'reservation_app:service_list_api' %}",
+    days: "{% url 'reservation_app:day_list_api' %}",
   },
 };
 </script>
