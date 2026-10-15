@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Q
 from django.views.generic import TemplateView
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -42,7 +43,18 @@ class SlotListView(ListAPIView):
         if not day_id or not service_id:
             return Slot.objects.none()
 
-        return Slot.objects.filter(day=day_id, service_id=service_id)
+        today = jdatetime.date.today()
+        now = jdatetime.datetime.now().time()
+
+        slots = Slot.objects.filter(
+            day=day_id,
+            service_id=service_id,
+        ).filter(
+            Q(day__date__gt=today) |
+            Q(day__date=today, time__gte=now)
+        )
+
+        return slots
 
 
 class ReservationCreateView(APIView):
