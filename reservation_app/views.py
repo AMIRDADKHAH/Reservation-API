@@ -8,12 +8,14 @@ from .models import Service, ReservationDay, Slot
 from .serializers import ServiceSerializer, ReservationDaySerializer, SlotSerializer, ReservationSerializer
 import jdatetime
 from rest_framework import status
-
+from .funcs import del_reservationday, set_status_reservation
 
 # Views
 class HomeView(TemplateView):
-    template_name = "reservation_app\index.html"
-
+    def get(self, request):
+        del_reservationday()
+        set_status_reservation()
+        return render(request, "reservation_app\index.html")
 
 
 # APIS

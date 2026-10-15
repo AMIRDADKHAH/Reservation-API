@@ -49,11 +49,12 @@ class Slot(models.Model):
 
 class Reservation(models.Model):
     class Status(models.TextChoices):
-        BOOKED = "booked", "ثبت‌شده"
-        CANCELLED = "cancelled", "لغو‌شده"
-        DONE = "done", "انجام‌شده"
+        BOOKED = "booked", "ثبت‌ شده"
+        NO_SHOW = "no_show", "عدم حضور"
+        CANCELLED = "cancelled", "لغو‌ شده"
+        DONE = "done", "انجام‌ شده"
     
-    slot = models.OneToOneField(Slot, on_delete=models.CASCADE, verbose_name="نوبت")
+    slot = models.OneToOneField(Slot, on_delete=models.SET_NULL, null=True, verbose_name="نوبت")
     full_name = models.CharField(max_length=150, verbose_name="نام و نام خانوادگی")
     phone = models.CharField(max_length=11, verbose_name="شماره تلفن")
     national_code = models.CharField(max_length=25, verbose_name="کد ملی")

@@ -17,7 +17,8 @@ class ReservationDayAdmin(admin.ModelAdmin):
 @admin.register(models.Reservation)
 class ReservationDayAdmin(admin.ModelAdmin):
     list_display = ("get_datetime", "full_name", "national_code", "status")
-    search_fields = ("national_code",)
+    list_filter = ("status", "slot__day__date")
+    search_fields = ("national_code", "full_name")
 
     @admin.display(description="تاریخ و زمان نوبت")
     def get_datetime(self, obj:models.Reservation):
