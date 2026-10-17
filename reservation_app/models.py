@@ -68,3 +68,17 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.full_name} -- {self.status}"
+
+
+
+class Setting(models.Model):
+    doctor_name = models.CharField(max_length=100, verbose_name="نام دکتر")
+    address = models.CharField(max_length=250, verbose_name="آدرس")
+    clinic_phone = models.CharField(max_length=15, verbose_name="شماره تلفن مطب")
+
+    class Meta:
+        verbose_name = "تنظیم"
+        verbose_name_plural = "تنظیمات"
+
+    def __str__(self):
+        return f"{self.doctor_name}"

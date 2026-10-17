@@ -25,4 +25,9 @@ class ReservationDayAdmin(admin.ModelAdmin):
         return f"{obj.slot.day.date} {obj.slot.time}"
 
 
+@admin.register(models.Setting)
+class SettingsAdmin(admin.ModelAdmin):
+    list_display = ("doctor_name", "address", "clinic_phone")
+
+
 admin.site.register(models.Service)

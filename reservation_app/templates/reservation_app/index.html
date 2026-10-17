@@ -5,14 +5,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>مطب دکتر نمونه | رزرو نوبت آنلاین</title>
+<title>مطب دکتر {{ setting.doctor_name }} | رزرو نوبت آنلاین</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo"><i></i>مطب دکتر نمونه</div>
+    <div class="logo"><i></i>مطب دکتر {{ setting.doctor_name }}</div>
     <span>شنبه تا چهارشنبه، ۱۶ تا ۲۰</span>
   </header>
   <h1>نوبت ویزیتت را آنلاین رزرو کن</h1>
@@ -26,7 +26,7 @@
       <button class="cta" id="go" disabled>ثبت نوبت</button>
     </aside>
   </main>
-  <footer>نشانی مطب: (اینجا آدرس را بنویس) · تلفن: (شماره تلفن) · لطفاً ۱۰ دقیقه زودتر حاضر شوید و کد پیگیری را همراه داشته باشید.</footer>
+  <footer>نشانی مطب: {{ setting.address }} · تلفن: {{ setting.clinic_phone }} · لطفاً ۱۰ دقیقه زودتر حاضر شوید و کد پیگیری را همراه داشته باشید.</footer>
 </div>
 
 <script>

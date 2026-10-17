@@ -5,7 +5,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .models import Service, ReservationDay, Slot
+from .models import Service, ReservationDay, Slot, Setting
 from .serializers import ServiceSerializer, ReservationDaySerializer, SlotSerializer, ReservationSerializer
 import jdatetime
 from rest_framework import status
@@ -16,7 +16,8 @@ class HomeView(TemplateView):
     def get(self, request):
         del_reservationday()
         set_status_reservation()
-        return render(request, "reservation_app\index.html")
+        my_setting = Setting.objects.first()
+        return render(request, "reservation_app/index.html", context={"setting": my_setting})
 
 
 # APIS
